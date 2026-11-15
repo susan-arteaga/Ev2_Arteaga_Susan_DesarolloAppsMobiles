@@ -4,7 +4,7 @@ import { firstValueFrom, forkJoin } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Tarea } from '../models/tarea.model';
 
-// Formato de un "todo" en la API externa (JSONPlaceholder)
+// API externa JSONPlaceholder
 interface TodoApi {
   userId: number;
   id: number;
@@ -18,7 +18,7 @@ export class ApiTareasService {
   private apiUrl = environment.apiUrl;
 
   /**
-   * Importa tareas desde la API externa y las convierte al formato de la app.
+   * Importa tareas
    */
   async importarTareas(cantidad = 5): Promise<Tarea[]> {
     const todos = await firstValueFrom(

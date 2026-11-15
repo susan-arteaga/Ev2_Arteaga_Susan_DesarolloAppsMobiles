@@ -1,17 +1,17 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonLabel, IonInput, IonButton, IonIcon,
-  IonList, IonBadge, IonSpinner, ToastController
+  IonList, IonBadge, IonSpinner, ToastController, NavController
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   addCircleOutline, saveOutline, closeOutline, pencilOutline, trashOutline,
   cameraOutline, locationOutline, cloudUploadOutline, cloudDownloadOutline,
-  checkmarkCircle, timeOutline
+  checkmarkCircle, timeOutline, logOutOutline, personCircleOutline
 } from 'ionicons/icons';
 
 import { Tarea, Ubicacion } from '../models/tarea.model';
@@ -19,6 +19,7 @@ import { CamaraService } from '../services/camara.service';
 import { UbicacionService } from '../services/ubicacion.service';
 import { AlmacenamientoService } from '../services/almacenamiento.service';
 import { ApiTareasService } from '../services/api-tareas.service';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-tab1',
@@ -33,13 +34,15 @@ import { ApiTareasService } from '../services/api-tareas.service';
     IonList, IonBadge, IonSpinner
   ],
 })
-export class Tab1Page implements OnInit {
+export class Tab1Page {
   // Servicios
   private camaraService = inject(CamaraService);
   ubicacionService = inject(UbicacionService);
   private almacenamiento = inject(AlmacenamientoService);
   private api = inject(ApiTareasService);
   private toastCtrl = inject(ToastController);
+  auth = inject(AuthService);
+  private navCtrl = inject(NavController);
 
   // Estado de la página
   tareas: Tarea[] = [];
@@ -50,17 +53,26 @@ export class Tab1Page implements OnInit {
   cargando: boolean = false;        // Muestra un spinner mientras se trabaja
 
   constructor() {
-    // En Ionic standalone los íconos deben registrarse antes de usarlos
+
     addIcons({
       addCircleOutline, saveOutline, closeOutline, pencilOutline, trashOutline,
       cameraOutline, locationOutline, cloudUploadOutline, cloudDownloadOutline,
-      checkmarkCircle, timeOutline
+      checkmarkCircle, timeOutline, logOutOutline, personCircleOutline
     });
   }
 
-  // Al abrir la página se cargan las tareas guardadas en el dispositivo
-  async ngOnInit() {
+
+  async ionViewWillEnter() {
     this.tareas = await this.almacenamiento.cargarTareas();
+  }
+
+  // ===== AUTENTICACIÓN =====
+  async cerrarSesion() {
+    await this.auth.cerrarSesion();
+    this.tareas = [];
+    this.limpiarFormulario();
+    // navigateRoot limpia el historial: no se puede volver a las tareas con "atrás"
+    await this.navCtrl.navigateRoot('/login');
   }
 
   get pendientesDeSincronizar(): number {
@@ -119,7 +131,7 @@ export class Tab1Page implements OnInit {
     this.limpiarFormulario();
   }
 
-  // Carga los datos de una tarea en el formulario para editarla
+
   editarTarea(tarea: Tarea) {
     this.editandoId = tarea.id;
     this.nuevoTitulo = tarea.titulo;
@@ -127,12 +139,12 @@ export class Tab1Page implements OnInit {
     this.nuevaFoto = tarea.foto ?? null;
   }
 
-  // Cancela la edición y limpia el formulario
+
   cancelarEdicion() {
     this.limpiarFormulario();
   }
 
-  // Elimina una tarea por su ID
+
   async eliminarTarea(id: number) {
     this.tareas = this.tareas.filter(t => t.id !== id);
     if (this.editandoId === id) {

@@ -20,7 +20,8 @@ export class UbicacionService {
     try {
       const posicion = await this.geolocation.getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 3000,
+        maximumAge: 60000,
       });
       return {
         latitud: posicion.coords.latitude,

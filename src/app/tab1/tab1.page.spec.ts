@@ -1,11 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+import { NavController } from '@ionic/angular';
 
 import { Tab1Page } from './tab1.page';
 import { CamaraService } from '../services/camara.service';
 import { UbicacionService } from '../services/ubicacion.service';
 import { AlmacenamientoService } from '../services/almacenamiento.service';
+import { AuthService } from '../services/auth.service';
 
 describe('Tab1Page (integración cámara + GPS en las tareas)', () => {
   let component: Tab1Page;
@@ -18,6 +21,8 @@ describe('Tab1Page (integración cámara + GPS en las tareas)', () => {
     cargarTareas: vi.fn().mockResolvedValue([]),
     guardarTareas: vi.fn().mockResolvedValue(undefined),
   };
+  const authMock = { usuarioActual: 'ana', cerrarSesion: vi.fn().mockResolvedValue(undefined) };
+  const navMock = { navigateRoot: vi.fn().mockResolvedValue(true) };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -27,9 +32,12 @@ describe('Tab1Page (integración cámara + GPS en las tareas)', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         { provide: CamaraService, useValue: camaraMock },
         { provide: UbicacionService, useValue: ubicacionMock },
         { provide: AlmacenamientoService, useValue: almacenamientoMock },
+        { provide: AuthService, useValue: authMock },
+        { provide: NavController, useValue: navMock },
       ],
     });
 
@@ -75,5 +83,13 @@ describe('Tab1Page (integración cámara + GPS en las tareas)', () => {
 
     expect(component.tareas.length).toBe(1);
     expect(component.tareas[0].ubicacion).toBeUndefined();
+  });
+
+  it('debe cerrar sesión y volver al login', async () => {
+    await component.cerrarSesion();
+
+    expect(authMock.cerrarSesion).toHaveBeenCalled();
+    expect(navMock.navigateRoot).toHaveBeenCalledWith('/login');
+    expect(component.tareas).toEqual([]);
   });
 });

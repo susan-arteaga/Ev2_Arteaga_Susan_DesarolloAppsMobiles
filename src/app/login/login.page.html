@@ -1,0 +1,53 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>📝 Mis Tareas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="login-contenedor">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ modoRegistro ? 'Crear cuenta' : 'Iniciar sesión' }}</ion-card-title>
+        <ion-card-subtitle>
+          {{ modoRegistro ? 'Regístrate para guardar tus tareas' : 'Ingresa para ver tus tareas' }}
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <form (ngSubmit)="enviar()">
+          <ion-item>
+            <ion-input label="Usuario" labelPlacement="floating" name="usuario"
+              [(ngModel)]="usuario" autocomplete="username"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-input label="Contraseña" labelPlacement="floating" type="password" name="password"
+              [(ngModel)]="password" autocomplete="current-password"></ion-input>
+          </ion-item>
+
+          <!-- Solo al registrarse -->
+          <ion-item *ngIf="modoRegistro">
+            <ion-input label="Confirmar contraseña" labelPlacement="floating" type="password"
+              name="confirmarPassword" [(ngModel)]="confirmarPassword"></ion-input>
+          </ion-item>
+
+          <!-- Mensaje de error -->
+          <ion-text color="danger" *ngIf="error">
+            <p class="error">{{ error }}</p>
+          </ion-text>
+
+          <ion-button expand="block" type="submit" class="ion-margin-top"
+            [disabled]="!usuario.trim() || !password || cargando">
+            <ion-icon [name]="modoRegistro ? 'person-add-outline' : 'log-in-outline'" slot="start"></ion-icon>
+            {{ modoRegistro ? 'Registrarme' : 'Ingresar' }}
+          </ion-button>
+        </form>
+
+        <ion-button expand="block" fill="clear" (click)="cambiarModo()">
+          {{ modoRegistro ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

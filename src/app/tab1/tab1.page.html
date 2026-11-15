@@ -10,11 +10,21 @@
       <ion-button (click)="sincronizarTareas()" [disabled]="cargando" title="Sincronizar con API">
         <ion-icon slot="icon-only" name="cloud-upload-outline"></ion-icon>
       </ion-button>
+      <!-- Cerrar sesión -->
+      <ion-button (click)="cerrarSesion()" title="Cerrar sesión">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
+
+  <!-- Usuario con sesión iniciada -->
+  <p class="usuario-actual">
+    <ion-icon name="person-circle-outline"></ion-icon>
+    Sesión iniciada como <strong>{{ auth.usuarioActual }}</strong>
+  </p>
 
   <!-- Indicador de carga -->
   <div class="cargando" *ngIf="cargando">
