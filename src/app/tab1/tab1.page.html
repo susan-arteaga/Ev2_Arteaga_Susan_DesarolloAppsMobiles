@@ -1,17 +1,141 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>📝 Mis Tareas</ion-title>
+    <ion-buttons slot="end">
+      <!-- Importar tareas desde la API externa -->
+      <ion-button (click)="importarTareas()" [disabled]="cargando" title="Importar desde API">
+        <ion-icon slot="icon-only" name="cloud-download-outline"></ion-icon>
+      </ion-button>
+      <!-- Sincronizar tareas con el servidor remoto -->
+      <ion-button (click)="sincronizarTareas()" [disabled]="cargando" title="Sincronizar con API">
+        <ion-icon slot="icon-only" name="cloud-upload-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <!-- Indicador de carga -->
+  <div class="cargando" *ngIf="cargando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <span>Procesando...</span>
+  </div>
+
+  <!-- FORMULARIO -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ editandoId !== null ? '✏️ Editar Tarea' : 'Nueva Tarea' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+
+      <ion-item>
+        <ion-input label="Título *" labelPlacement="floating"
+          [(ngModel)]="nuevoTitulo" placeholder="Ej: Estudiar Ionic"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-input label="Descripción" labelPlacement="floating"
+          [(ngModel)]="nuevaDescripcion" placeholder="Ej: Repasar componentes"></ion-input>
+      </ion-item>
+
+      <!-- Vista previa de la foto capturada -->
+      <div class="foto-preview" *ngIf="nuevaFoto">
+        <img [src]="nuevaFoto" alt="Foto de la tarea" />
+        <ion-button size="small" color="danger" fill="outline" (click)="quitarFoto()">
+          <ion-icon name="close-outline" slot="start"></ion-icon>
+          Quitar foto
+        </ion-button>
+      </div>
+
+      <!-- Botón para usar la cámara -->
+      <ion-button expand="block" color="tertiary" fill="outline" class="ion-margin-top" (click)="tomarFoto()">
+        <ion-icon name="camera-outline" slot="start"></ion-icon>
+        {{ nuevaFoto ? 'Cambiar foto' : 'Tomar foto' }}
+      </ion-button>
+
+      <!-- Botón principal: cambia texto e ícono según el modo -->
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        (click)="guardarTarea()"
+        [disabled]="nuevoTitulo.trim() === '' || cargando">
+        <ion-icon [name]="editandoId !== null ? 'save-outline' : 'add-circle-outline'" slot="start"></ion-icon>
+        {{ editandoId !== null ? 'Guardar Cambios' : 'Agregar Tarea' }}
+      </ion-button>
+
+      <!-- Botón Cancelar: solo visible cuando se está editando -->
+      <ion-button
+        *ngIf="editandoId !== null"
+        expand="block"
+        color="medium"
+        fill="outline"
+        class="ion-margin-top"
+        (click)="cancelarEdicion()">
+        <ion-icon name="close-outline" slot="start"></ion-icon>
+        Cancelar
+      </ion-button>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- LISTA DE TAREAS -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        Lista de Tareas
+        <ion-badge color="primary" class="ion-margin-start">{{ tareas.length }}</ion-badge>
+        <ion-badge color="warning" class="ion-margin-start" *ngIf="pendientesDeSincronizar > 0">
+          {{ pendientesDeSincronizar }} sin sincronizar
+        </ion-badge>
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content *ngIf="tareas.length === 0">
+      <p class="sin-tareas">No hay tareas aún. ¡Agrega una arriba o importa desde la API! 🎯</p>
+    </ion-card-content>
+
+    <ion-list *ngIf="tareas.length > 0">
+      <ion-item *ngFor="let tarea of tareas" [class.editando]="tarea.id === editandoId" lines="full">
+        <ion-label class="tarea-label">
+          <div class="tarea-fila">
+
+            <!-- Miniatura de la foto -->
+            <img *ngIf="tarea.foto" [src]="tarea.foto" class="tarea-miniatura" alt="Foto" />
+
+            <div class="tarea-texto">
+              <h2>{{ tarea.titulo }}</h2>
+              <p>{{ tarea.descripcion }}</p>
+
+              <!-- Ubicación GPS -->
+              <p class="tarea-meta" *ngIf="tarea.ubicacion">
+                <ion-icon name="location-outline"></ion-icon>
+                <a [href]="ubicacionService.urlMapa(tarea.ubicacion)" target="_blank">
+                  {{ tarea.ubicacion.latitud | number:'1.4-4' }}, {{ tarea.ubicacion.longitud | number:'1.4-4' }}
+                </a>
+              </p>
+
+              <!-- Estado de sincronización -->
+              <p class="tarea-meta">
+                <ion-icon [name]="tarea.sincronizada ? 'checkmark-circle' : 'time-outline'"
+                  [color]="tarea.sincronizada ? 'success' : 'warning'"></ion-icon>
+                {{ tarea.sincronizada ? 'Sincronizada' : 'Pendiente' }}
+                <span *ngIf="tarea.origen === 'api'"> · Importada</span>
+              </p>
+            </div>
+
+            <div class="tarea-botones">
+              <ion-button color="warning" fill="outline" size="small" (click)="editarTarea(tarea)">
+                <ion-icon name="pencil-outline"></ion-icon>
+              </ion-button>
+              <ion-button color="danger" fill="outline" size="small" (click)="eliminarTarea(tarea.id)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-card>
+
 </ion-content>

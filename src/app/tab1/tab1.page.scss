@@ -1,0 +1,97 @@
+.sin-tareas {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+}
+
+// Hace los botones de las tareas más pequeños y con menos padding
+.tarea-label {
+  overflow: visible !important;
+}
+
+// Fila principal de cada tarea, que contiene el texto y los botones
+.tarea-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.tarea-texto {
+  flex: 1;
+
+  h2 {
+    font-weight: bold;
+    margin: 0 0 4px 0;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0;
+  }
+}
+
+.tarea-botones {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+// Resalta la tarea que está siendo editada
+.editando {
+  --border-color: var(--ion-color-warning);
+  --border-width: 2px;
+  --background: rgba(var(--ion-color-warning-rgb), 0.08);
+}
+
+
+// ===== PARTE 2: foto, ubicación y estado =====
+
+// Permite que los textos largos (ej. tareas importadas) bajen de línea
+.tarea-texto {
+  white-space: normal;
+  margin-left: 8px;
+}
+
+.tarea-miniatura {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.tarea-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px !important;
+  font-size: 0.75rem !important;
+
+  a {
+    color: var(--ion-color-primary);
+  }
+}
+
+.foto-preview {
+  margin-top: 12px;
+  text-align: center;
+
+  img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto 8px;
+  }
+}
+
+.cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
